@@ -1,4 +1,5 @@
 import json
+import sys
 import os
 import numpy as np
 import tensorflow as tf
@@ -11,11 +12,14 @@ from utils import FLAGS, enc, PAD_ID, hparams, \
     gen_batched_data, gen_batched_data_from_kg
 from interactive_conditional_samples import interact_model
 from generate_unconditional_samples import sample_model
-import sys
+
 os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
 print("Using %s-th gpu ..." % os.environ["CUDA_VISIBLE_DEVICES"])
-train_dir = os.path.join(FLAGS.model_dir)
-assert os.path.exists(train_dir)
+pt_train_dir = os.path.join(FLAGS.pt_model_dir)
+assert os.path.exists(pt_train_dir)
+ft_train_dir = os.path.join(FLAGS.ft_model_dir)
+if not os.path.exists(ft_train_dir):
+    os.mkdir(ft_train_dir)
 
 def train(sess, dataset, is_train=True):
     def pro_acc(acc):
@@ -76,9 +80,6 @@ def train(sess, dataset, is_train=True):
     else:
         return np.exp(np.mean(loss))
 
-#**********************************************************************************
-#**********************************************************************************
-#**********************************************************************************
 
 print("begin loading dataset......")
 if FLAGS.data_name == "roc":
@@ -112,9 +113,18 @@ elif FLAGS.data_name == "multi_roc":
 else:
     print("DATANAME ERROR")
     exit()
+
+
+if FLAGS.is_debug == 1:
+    data_train = data_train[:100]
+    data_dev = data_dev[:10]
+    data_test = data_test[:10]
+
+#Shuffle the training data
 random.shuffle(data_train)
-random.shuffle(data_dev)
-random.shuffle(data_test)
+#random.shuffle(data_dev)
+#random.shuffle(data_test)
+
 print("Number of data for training:%d"%len(data_train))
 print("Number of data for validation:%d"%len(data_dev))
 print("Number of data for testing:%d"%len(data_test))
@@ -166,45 +176,52 @@ with tf.Session(config=config) as sess:
             max_gradient_norm)
     update = tf.train.AdamOptimizer(learning_rate).apply_gradients(zip(clipped_gradients, params), global_step=global_step)
 
-    try:
-        saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2, 
-                max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-        print("Reading model parameters from %s" % (train_dir))
-        saver.restore(sess, tf.train.latest_checkpoint(train_dir))
-    except:
-        sess.run(tf.global_variables_initializer())
+    if FLAGS.is_train:
         try:
-            restore_tensor = []
-            for tensor in tf.global_variables():
-                if "fine_tuning" not in tensor.name:
-                    restore_tensor.append(tensor)
-                else:
-                    print("to-be-initialized parameter:", tensor.name)
-            print("="*5)
-            saver = tf.train.Saver(restore_tensor, write_version=tf.train.SaverDef.V2, 
+            saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2,
                     max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-            saver.restore(sess, tf.train.latest_checkpoint(train_dir))
-            print("Initialize the classifier parameter.")
+            print("Reading model parameters from %s" % (pt_train_dir))
+            saver.restore(sess, tf.train.latest_checkpoint(pt_train_dir))
         except:
-            restore_tensor = []
-            for tensor in tf.global_variables():
-                if "beta" not in tensor.name and "initialize" not in tensor.name and "fine_tuning" not in tensor.name and "Adam" not in tensor.name:
-                    restore_tensor.append(tensor)
-                else:
-                    print("to-be-initialized parameter:", tensor.name)
-            print("="*5)
-            saver = tf.train.Saver(restore_tensor, write_version=tf.train.SaverDef.V2, 
+            sess.run(tf.global_variables_initializer())
+            try:
+                restore_tensor = []
+                for tensor in tf.global_variables():
+                    if "fine_tuning" not in tensor.name:
+                        restore_tensor.append(tensor)
+                    else:
+                        print("to-be-initialized parameter:", tensor.name)
+                print("="*5)
+                saver = tf.train.Saver(restore_tensor, write_version=tf.train.SaverDef.V2,
+                        max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
+                saver.restore(sess, tf.train.latest_checkpoint(pt_train_dir))
+                print("Initialize the classifier parameter.")
+            except:
+                restore_tensor = []
+                for tensor in tf.global_variables():
+                    if "beta" not in tensor.name and "initialize" not in tensor.name and "fine_tuning" not in tensor.name and "Adam" not in tensor.name:
+                        restore_tensor.append(tensor)
+                    else:
+                        print("to-be-initialized parameter:", tensor.name)
+                print("="*5)
+                saver = tf.train.Saver(restore_tensor, write_version=tf.train.SaverDef.V2,
+                        max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
+                saver.restore(sess, tf.train.latest_checkpoint(pt_train_dir))
+                print("Initialize all the fine-tuning parameter.")
+            saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2,
                     max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-            saver.restore(sess, tf.train.latest_checkpoint(train_dir))
-            print("Initialize all the fine-tuning parameter.")
-        saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2, 
-                max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-        saver.save(sess, '%s/checkpoint' % train_dir, global_step=global_step.eval())
-        print("Reading model parameters from %s and initialize the parameters for fine-tuning." % (train_dir))
+            saver.save(sess, '%s/checkpoint' % pt_train_dir, global_step=global_step.eval())
+            print("Reading model parameters from %s and initialize the parameters for fine-tuning." % (pt_train_dir))
+    else:
+        saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2,
+                               max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
+        print("Reading model parameters from %s" % (ft_train_dir))
+        saver.restore(sess, tf.train.latest_checkpoint(ft_train_dir))
 
     if FLAGS.is_train:
         best_loss = 1e10
         pre_losses = [1e18] * 3
+        print("begins training......")
         while True:
             random.shuffle(data_train)
             start_time = time.time()
@@ -214,14 +231,14 @@ with tf.Session(config=config) as sess:
             pre_losses = pre_losses[1:] + [loss]
             print("Gen epoch %d learning rate %.4f epoch-time %.4f: " % (epoch.eval(), learning_rate.eval(), time.time() - start_time))
             print("PPL on training set:", loss)
-            loss = train(sess, data_test, is_train=False)
-            print("        PPL on validation set:", loss)
-            if loss < best_loss:
-                best_loss = loss
-                loss = train(sess, data_test, is_train=False)
-                print("        PPL on testing set:", loss)
-                saver.save(sess, '%s/checkpoint' % train_dir, global_step=global_step.eval())
-                print("saving parameters in %s" % train_dir)
+            dev_loss = train(sess, data_dev, is_train=False)
+            print("PPL on validation set:", dev_loss)
+            if dev_loss < best_loss:
+                best_loss = dev_loss
+                test_loss = train(sess, data_test, is_train=False)
+                print("PPL on testing set:", test_loss)
+                saver.save(sess, '%s/checkpoint' % ft_train_dir, global_step=global_step.eval())
+                print("saving parameters in %s" % ft_train_dir)
     else:
         if FLAGS.cond:
             print("begin conditionally generating stories......")

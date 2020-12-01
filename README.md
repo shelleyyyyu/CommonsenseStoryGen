@@ -13,8 +13,8 @@ The code is written in [TensorFlow](https://www.tensorflow.org/) library. To use
 
 - Python 3.5.2
 - tensorflow-gpu==1.12.0
-- numpy ==1.15.4
-- regex==2.4.120
+- numpy==1.15.4
+- regex
 
 ## Quick Start
 

@@ -1,0 +1,6 @@
+models
+.idea
+venv
+src/__pycache__
+inference_gpt2.txt
+data
