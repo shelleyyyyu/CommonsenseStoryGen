@@ -13,8 +13,8 @@ from utils import FLAGS, enc, PAD_ID, hparams, \
 from interactive_conditional_samples import interact_model
 from generate_unconditional_samples import sample_model
 
-#os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
-#print("Using %s-th gpu ..." % os.environ["CUDA_VISIBLE_DEVICES"])
+os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
+print("Using %s-th gpu ..." % os.environ["CUDA_VISIBLE_DEVICES"])
 train_dir = os.path.join(FLAGS.model_dir)
 assert os.path.exists(train_dir)
 
@@ -177,9 +177,11 @@ with tf.Session(config=config) as sess:
         try:
             saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2,
                     max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
+            print(train_dir)
             print("Reading model parameters from %s" % (train_dir))
             saver.restore(sess, tf.train.latest_checkpoint(train_dir))
-        except:
+        except Exception as e:
+            print(e)
             sess.run(tf.global_variables_initializer())
             try:
                 restore_tensor = []
@@ -234,7 +236,7 @@ with tf.Session(config=config) as sess:
                 best_loss = dev_loss
                 test_loss = train(sess, data_test, is_train=False)
                 print("PPL on testing set:", test_loss)
-                saver.save(sess, '%s/checkpoint' % train_dir, global_step=global_step.eval())
+                saver.save(sess, '%s/checkpoint' % train_dir, global_step=epoch.eval())
                 print("saving parameters in %s" % train_dir)
     else:
         if FLAGS.cond:
