@@ -49,21 +49,21 @@ The code is written in [TensorFlow](https://www.tensorflow.org/) library. To use
 
   The pretrained model can be post-trained on the knowledge bases by executing the following command:
 
-  ​	`python3 main.py --is_train 1 --data_name kg `
+  ​	`python ./src/main.py --is_train 1 --data_name kg --data_dir ./data/commonsense_data --model_dir ./models/gpt2-124M`
 
   And then the model is trained on the ROCStories corpus with multi-task learning by executing the following command:
 
-  ​	`python3 main.py --is_train 1 --data_name multi_roc `
+  ​	`python ./src/main.py --is_train 1 --data_name multi_roc --model_dir ./models/gpt2-124M`
 
 - Inference
 
   You can generating stories conditionally on the beginning using the following command:
 
-  ​	`python3 main.py --is_train 0 --cond 1 --data_name roc `
+  ​	`python ./src/main.py --is_train 0 --cond 1 --data_name roc --model_dir ./models/gpt2-124M `
 
   You can generating stories unconditionally using the following command:
 
-  ​	`python3 main.py --is_train 0 --cond 0 --data_name roc `
+  ​	`python ./src/main.py --is_train 0 --cond 0 --data_name roc --model_dir ./models/gpt2-124M `
 
   1000 conditionally generated stories (the beginnings are sampled from the testing set) can be found in `sample_generation_story.txt`.
 

@@ -1,8 +1,8 @@
 import numpy as np
 import random
 
-with open("./roc.txt", "r") as fin:
-    with open("./roc_shuffle.txt", "w") as fout:
+with open("./roc.txt", "r", encoding='utf-8') as fin:
+    with open("./roc_shuffle.txt", "w", encoding='utf-8') as fout:
         tmp = []
         for k, line in enumerate(fin):
             i = k + 1
@@ -14,8 +14,8 @@ with open("./roc.txt", "r") as fin:
                 fout.write(line.strip()+"\n")
             else:
                 tmp.append(line.strip())
-with open("./roc.txt", "r") as fin:
-    with open("./roc_repeat.txt", "w") as fout:
+with open("./roc.txt", "r", encoding='utf-8') as fin:
+    with open("./roc_repeat.txt", "w", encoding='utf-8') as fout:
         tmp = []
         for k, line in enumerate(fin):
             i = k + 1
@@ -28,8 +28,8 @@ with open("./roc.txt", "r") as fin:
                 fout.write(line.strip()+"\n")
             else:
                 tmp.append(line.strip())
-with open("./roc.txt", "r") as fin:
-    with open("./roc_replace.txt", "w") as fout:
+with open("./roc.txt", "r", encoding='utf-8') as fin:
+    with open("./roc_replace.txt", "w", encoding='utf-8') as fout:
         post, tmp = [], []
         for k, line in enumerate(fin):
             i = k + 1

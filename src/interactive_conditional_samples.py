@@ -64,7 +64,7 @@ def interact_model(
             print(text)
             print("=" * 80)
     else:
-        fout = open(output_file_name, "w")
+        fout = open(output_file_name, "w", encoding='utf-8')
         st, ed = 0, 0
         while ed < len(dataset):
             st, ed = ed, ed + 1

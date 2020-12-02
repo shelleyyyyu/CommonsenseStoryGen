@@ -9,8 +9,7 @@ import random
 tf.app.flags.DEFINE_integer("is_debug", 1, "Set to 1/0 to debug/non-debug.")
 tf.app.flags.DEFINE_integer("is_train", 1, "Set to 1/0 to train/inference.")
 tf.app.flags.DEFINE_integer("cond", 1, "Set to 1/0 to generate stories unconditionally/conditionally on the beginning.")
-tf.app.flags.DEFINE_string("pt_model_dir", "./models/gpt2-124M", "Model directory.")
-tf.app.flags.DEFINE_string("ft_model_dir", "./models/roc_finetune", "Model directory.")
+tf.app.flags.DEFINE_string("model_dir", "./models/gpt2-124M", "Model directory.")
 tf.app.flags.DEFINE_string("gpu", "0", "Specify which gpu to use.")
 tf.app.flags.DEFINE_integer("batch_size", 10, "Number of batches (only affects speed/memory).")
 tf.app.flags.DEFINE_string("data_name", "roc", "Set `roc` to train the model on ROCStories corpus or \
@@ -25,13 +24,13 @@ tf.app.flags.DEFINE_integer("top_k", 40, "Integer value controlling diversity.")
 FLAGS = tf.app.flags.FLAGS
 FLAGS.is_train = bool(FLAGS.is_train)
 FLAGS.cond = bool(FLAGS.cond)
-pt_model_dir = os.path.expanduser(os.path.expandvars(FLAGS.pt_model_dir))
-enc = encoder.get_encoder(pt_model_dir)
+model_dir = os.path.expanduser(os.path.expandvars(FLAGS.model_dir))
+enc = encoder.get_encoder(model_dir)
 PAD_ID = enc.encoder['<|endoftext|>']
 hparams = model.default_hparams()
 
 
-with open(os.path.join(pt_model_dir, 'hparams.json')) as f:
+with open(os.path.join(model_dir, 'hparams.json')) as f:
     hparams.override_from_dict(json.load(f))
 
 def load_data(path, fname, enc, label):
@@ -54,7 +53,8 @@ def load_data(path, fname, enc, label):
     return data
 
 def load_data_kg(path, fname, enc):
-    with open("%s/%s.txt" % (path, fname)) as fin:
+    print("loading..... %s/%s.txt" % (path, fname))
+    with open("%s/%s.txt" % (path, fname), 'r', encoding='utf-8') as fin:
         data = [enc.encode(line.strip()) for line in fin]
     return data
 

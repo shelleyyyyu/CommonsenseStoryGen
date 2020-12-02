@@ -15,11 +15,8 @@ from generate_unconditional_samples import sample_model
 
 os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
 print("Using %s-th gpu ..." % os.environ["CUDA_VISIBLE_DEVICES"])
-pt_train_dir = os.path.join(FLAGS.pt_model_dir)
-assert os.path.exists(pt_train_dir)
-ft_train_dir = os.path.join(FLAGS.ft_model_dir)
-if not os.path.exists(ft_train_dir):
-    os.mkdir(ft_train_dir)
+train_dir = os.path.join(FLAGS.model_dir)
+assert os.path.exists(train_dir)
 
 def train(sess, dataset, is_train=True):
     def pro_acc(acc):
@@ -180,8 +177,8 @@ with tf.Session(config=config) as sess:
         try:
             saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2,
                     max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-            print("Reading model parameters from %s" % (pt_train_dir))
-            saver.restore(sess, tf.train.latest_checkpoint(pt_train_dir))
+            print("Reading model parameters from %s" % (train_dir))
+            saver.restore(sess, tf.train.latest_checkpoint(train_dir))
         except:
             sess.run(tf.global_variables_initializer())
             try:
@@ -194,7 +191,7 @@ with tf.Session(config=config) as sess:
                 print("="*5)
                 saver = tf.train.Saver(restore_tensor, write_version=tf.train.SaverDef.V2,
                         max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-                saver.restore(sess, tf.train.latest_checkpoint(pt_train_dir))
+                saver.restore(sess, tf.train.latest_checkpoint(train_dir))
                 print("Initialize the classifier parameter.")
             except:
                 restore_tensor = []
@@ -206,17 +203,17 @@ with tf.Session(config=config) as sess:
                 print("="*5)
                 saver = tf.train.Saver(restore_tensor, write_version=tf.train.SaverDef.V2,
                         max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-                saver.restore(sess, tf.train.latest_checkpoint(pt_train_dir))
+                saver.restore(sess, tf.train.latest_checkpoint(train_dir))
                 print("Initialize all the fine-tuning parameter.")
             saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2,
                     max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-            saver.save(sess, '%s/checkpoint' % pt_train_dir, global_step=global_step.eval())
-            print("Reading model parameters from %s and initialize the parameters for fine-tuning." % (pt_train_dir))
+            saver.save(sess, '%s/checkpoint' % train_dir, global_step=global_step.eval())
+            print("Reading model parameters from %s and initialize the parameters for fine-tuning." % (train_dir))
     else:
         saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V2,
                                max_to_keep=10, pad_step_number=True, keep_checkpoint_every_n_hours=1.0)
-        print("Reading model parameters from %s" % (ft_train_dir))
-        saver.restore(sess, tf.train.latest_checkpoint(ft_train_dir))
+        print("Reading model parameters from %s" % (train_dir))
+        saver.restore(sess, tf.train.latest_checkpoint(train_dir))
 
     if FLAGS.is_train:
         best_loss = 1e10
@@ -237,8 +234,8 @@ with tf.Session(config=config) as sess:
                 best_loss = dev_loss
                 test_loss = train(sess, data_test, is_train=False)
                 print("PPL on testing set:", test_loss)
-                saver.save(sess, '%s/checkpoint' % ft_train_dir, global_step=global_step.eval())
-                print("saving parameters in %s" % ft_train_dir)
+                saver.save(sess, '%s/checkpoint' % train_dir, global_step=global_step.eval())
+                print("saving parameters in %s" % train_dir)
     else:
         if FLAGS.cond:
             print("begin conditionally generating stories......")
