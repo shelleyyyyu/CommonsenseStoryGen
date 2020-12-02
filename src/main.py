@@ -13,8 +13,8 @@ from utils import FLAGS, enc, PAD_ID, hparams, \
 from interactive_conditional_samples import interact_model
 from generate_unconditional_samples import sample_model
 
-os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
-print("Using %s-th gpu ..." % os.environ["CUDA_VISIBLE_DEVICES"])
+#os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
+#print("Using %s-th gpu ..." % os.environ["CUDA_VISIBLE_DEVICES"])
 train_dir = os.path.join(FLAGS.model_dir)
 assert os.path.exists(train_dir)
 
