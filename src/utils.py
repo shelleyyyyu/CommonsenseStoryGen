@@ -6,7 +6,7 @@ import os, sys
 import random
 
 ##CONFIGURATION##
-tf.app.flags.DEFINE_integer("is_debug", 1, "Set to 1/0 to debug/non-debug.")
+tf.app.flags.DEFINE_integer("is_debug", 0, "Set to 1/0 to debug/non-debug.")
 tf.app.flags.DEFINE_integer("is_train", 1, "Set to 1/0 to train/inference.")
 tf.app.flags.DEFINE_integer("cond", 1, "Set to 1/0 to generate stories unconditionally/conditionally on the beginning.")
 tf.app.flags.DEFINE_string("model_dir", "./models/gpt2-124M", "Model directory.")

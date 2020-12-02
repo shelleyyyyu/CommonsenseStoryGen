@@ -44,8 +44,14 @@ The code is written in [TensorFlow](https://www.tensorflow.org/) library. To use
   --temperature		Float value controlling randomness in boltzmann distribution. Lower temperature results in less random completions. As the temperature approaches zero, the model will become deterministic and repetitive. Higher temperature results in more random completions. (default 0.7)
   --top_k			Integer value controlling diversity. (default 40)
   ```
+- Training baseline 
 
-- Training
+  The pretrained model can be post-trained on the roc by executing the following command:
+
+  ​	`python ./src/main.py --is_train 1 --data_name roc --model_dir ./models_baseline/gpt2-124M`
+
+  
+- Training 
 
   The pretrained model can be post-trained on the knowledge bases by executing the following command:
 
