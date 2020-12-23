@@ -40,7 +40,7 @@ def load_data(path, fname, enc, label):
         tmp = []
         for k, line in enumerate(f):
             i = k + 1
-            if i % 6 == 0:
+            if i % 7 == 0:
                 data.append({"st": tmp, "label": label})
                 tmp = []
             else:
