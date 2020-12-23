@@ -62,7 +62,7 @@ def padding(sent, l):
     return sent + [PAD_ID] * (l-len(sent))
 
 def gen_batched_data(data):
-    max_story_len = max([sum([len(item["st"][i]) for i in range(5)]) for item in data]) + 1
+    max_story_len = max([sum([len(item["st"][i]) for i in range(6)]) for item in data]) + 1
     max_input_story_len = max([len(item["st"][0]) for item in data]) + 1
     story, story_length, label = [], [], []
     input_story, input_story_length = [], []
@@ -71,7 +71,7 @@ def gen_batched_data(data):
         input_story.append(padding(item["st"][0], max_input_story_len))
         input_story_length.append(len(item["st"][0]) + 1)    
         story.append([])
-        for i in range(5):
+        for i in range(6):
             story[-1] += item["st"][i]
         story_length.append(len(story[-1]) + 1)
         story[-1] = padding(story[-1], max_story_len)
